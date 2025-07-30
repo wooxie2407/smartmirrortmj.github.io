@@ -1,0 +1,325 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Form Pendaftaran Mahasiswa</title>
+  
+<link rel="stylesheet" href="style_orange.css">
+
+</head>
+<body>
+  <div class="form-container">
+    <div class="steps">
+      <div class="step active" id="step-0">Data Mahasiswa</div>
+      <div class="step" id="step-1">Jadwal</div>
+      <div class="step" id="step-2">Tugas</div>
+      <div class="step" id="step-3">Agenda</div>
+    </div>
+    <div class="form-body">
+      <form id="regForm">
+    <!-- Page 1 -->
+    <div class="page active">
+      <h2>Data Mahasiswa</h2>
+      <label>Nama</label>
+      <input type="text" id="name" required>
+      <label>NIM</label>
+      <input type="text" id="nim" required>
+      <label>Password</label>
+      <input type="password" id="password" required>
+      <label>Jenis Kelamin</label>
+      <select id="gender" required>
+        <option value="">Pilih</option>
+        <option value="Laki-laki">Laki-laki</option>
+        <option value="Perempuan">Perempuan</option>
+      </select>
+      <label>Role</label>
+      <input type="text" id="role" value="Mahasiswa">
+      <label>Link Avatar</label>
+      <input type="text" id="avatar">
+      <label>Pesan Sambutan</label>
+      <input type="text" id="welcome_message" placeholder="Selamat Datang">
+      <div class="nav-buttons">
+        <span></span>
+        <button type="button" onclick="nextPage()">Lanjut</button>
+      </div>
+    </div>
+
+    <!-- Page 2: Jadwal -->
+    <div class="page">
+      <h2>Jadwal</h2>
+      <select id="day-select" onchange="changeDay()">
+        <option value="monday">Senin</option>
+        <option value="tuesday">Selasa</option>
+        <option value="wednesday">Rabu</option>
+        <option value="thursday">Kamis</option>
+        <option value="friday">Jumat</option>
+      </select>
+      <div id="schedule-list"></div>
+      <button type="button" onclick="addSchedule()" id="add-schedule">+ Tambah Jadwal</button>
+      <div class="nav-buttons">
+        <button type="button" onclick="prevPage()">Sebelumnya</button>
+        <button type="button" onclick="nextPage()">Lanjut</button>
+      </div>
+    </div>
+
+    <!-- Page 3: Tugas -->
+    <div class="page">
+      <h2>Tugas</h2>
+      <div id="task-list"></div>
+      <button type="button" onclick="addTask()" id="add-task">+ Tambah Tugas</button>
+      <div class="nav-buttons">
+        <button type="button" onclick="prevPage()">Sebelumnya</button>
+        <button type="button" onclick="nextPage()">Lanjut</button>
+      </div>
+    </div>
+
+    <!-- Page 4: Agenda + Upload -->
+    <div class="page">
+      <h2>Agenda</h2>
+      <div id="agenda-list"></div>
+      <button type="button" onclick="addAgenda()" id="add-agenda">+ Tambah Agenda</button>
+      <h3>Upload Foto</h3>
+      <input type="file" id="photo1" accept="image/*" required>
+      <input type="file" id="photo2" accept="image/*" required>
+      <input type="file" id="photo3" accept="image/*" required>
+      <p id="status"></p>
+      <div class="nav-buttons">
+        <button type="button" onclick="prevPage()">Sebelumnya</button>
+        <button type="submit">Kirim</button>
+      </div>
+    </div>
+  </form>
+    </div>
+  </div>
+  <script>
+    let currentPage = 0;
+    const pages = document.querySelectorAll(".page");
+
+    function showPage(index) {
+      pages.forEach((p, i) => p.classList.toggle("active", i === index));
+    }
+    function nextPage() {
+      if (currentPage < pages.length - 1) {
+        currentPage++;
+        showPage(currentPage);
+      }
+    }
+    function prevPage() {
+      if (currentPage > 0) {
+        currentPage--;
+        showPage(currentPage);
+      }
+    }
+    document.addEventListener("DOMContentLoaded", () => showPage(currentPage));
+  </script>
+<script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth-compat.js"></script>
+<script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhLoamtCoPvVdEmI9EyiSUEtAcqBoj90Q",
+      authDomain: "smartmirrortest1-a430b.firebaseapp.com",
+      projectId: "smartmirrortest1-a430b",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    const agendas = [], tasks = [], scheduleData = {};
+    let currentDay = "monday";
+
+    function addAgenda() {
+      if (agendas.length >= 3) return;
+      const container = document.createElement("div");
+      container.className = "entry";
+      container.innerHTML = `
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove(); agendas.splice(agendas.indexOf(this.parentElement), 1); toggleAddButton('agenda')">x</button>
+        <input placeholder="Judul" required>
+        <input type="date" required>
+        <input placeholder="Waktu" required>
+        <input placeholder="Kategori" required>
+        <textarea placeholder="Deskripsi" required></textarea>
+      `;
+      agendas.push(container);
+      document.getElementById("agenda-list").appendChild(container);
+      toggleAddButton('agenda');
+    }
+
+    function addTask() {
+      if (tasks.length >= 3) return;
+      const container = document.createElement("div");
+      container.className = "entry";
+      container.innerHTML = `
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove(); tasks.splice(tasks.indexOf(this.parentElement), 1); toggleAddButton('task')">x</button>
+        <input placeholder="Judul" required>
+        <input type="date" required>
+        <input placeholder="Kategori" required>
+        <textarea placeholder="Deskripsi" required></textarea>
+      `;
+      tasks.push(container);
+      document.getElementById("task-list").appendChild(container);
+      toggleAddButton('task');
+    }
+
+    function addSchedule() {
+      if (!scheduleData[currentDay]) scheduleData[currentDay] = [];
+      if (scheduleData[currentDay].length >= 3) return;
+      const container = document.createElement("div");
+      container.className = "entry";
+      container.innerHTML = `
+        <button type="button" class="remove-btn" onclick="removeSchedule('${currentDay}', this)">x</button>
+        <input placeholder="Mata Kuliah" required>
+        <input placeholder="Waktu" required>
+        <input placeholder="Lokasi" required>
+      `;
+      scheduleData[currentDay].push(container);
+      document.getElementById("schedule-list").appendChild(container);
+      toggleAddButton('schedule');
+    }
+
+    function changeDay() {
+      currentDay = document.getElementById("day-select").value;
+      showScheduleForDay();
+    }
+
+    function showScheduleForDay() {
+      const list = document.getElementById("schedule-list");
+      list.innerHTML = '';
+      (scheduleData[currentDay] || []).forEach(el => list.appendChild(el));
+      toggleAddButton('schedule');
+    }
+
+    function removeSchedule(day, btn) {
+      const entry = btn.parentElement;
+      scheduleData[day] = scheduleData[day].filter(e => e !== entry);
+      entry.remove();
+      toggleAddButton('schedule');
+    }
+
+    function toggleAddButton(type) {
+      if (type === 'agenda') document.getElementById('add-agenda').disabled = agendas.length >= 3;
+      if (type === 'task') document.getElementById('add-task').disabled = tasks.length >= 3;
+      if (type === 'schedule') document.getElementById('add-schedule').disabled = (scheduleData[currentDay] || []).length >= 3;
+    }
+
+async function uploadPhoto(file, faceId, index) {
+  if (!file) {
+    console.warn(`Photo ${index} not selected`);
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append("photo", file);
+  formData.append("face_id", faceId);
+  formData.append("index", index);
+
+  console.log(`[DEBUG] Uploading photo ${index} with face_id=${faceId}`);
+
+  const response = await fetch("https://c7453895bf0a.ngrok-free.app/upload", {
+    method: "POST",
+    body: formData
+  });
+
+  const resultText = await response.text();
+  console.log(`[DEBUG] Response for photo ${index}:`, resultText);
+
+  let result;
+  try { 
+    result = JSON.parse(resultText);
+  } catch (e) {
+    throw new Error("Response is not valid JSON: " + resultText);
+  }
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.error || "Upload gagal");
+  }
+}
+
+    document.getElementById("regForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const status = document.getElementById("status");
+      try {
+        const name = document.getElementById("name").value;
+        const nim = document.getElementById("nim").value;
+        const password = document.getElementById("password").value;
+        const gender = document.getElementById("gender").value;
+        const role = document.getElementById("role").value;
+        const faceId = nim.slice(-3);
+        const avatar = document.getElementById("avatar").value;
+        const welcome_message = document.getElementById("welcome_message").value || "Selamat Datang";
+        const email = `${nim}@students.com`;
+
+        await auth.createUserWithEmailAndPassword(email, password);
+
+        const userRef = db.collection("users").doc(faceId);
+        await userRef.set({ name, nim, gender, role, face_id: faceId, avatar, welcome_message, authEmail: email });
+
+        for (let i = 0; i < agendas.length; i++) {
+          const inputs = agendas[i].querySelectorAll("input, textarea");
+          await userRef.collection("agenda").doc("event_" + (i + 1)).set({
+            title: inputs[0].value,
+            date: inputs[1].value,
+            time: inputs[2].value,
+            category: inputs[3].value,
+            description: inputs[4].value
+          });
+        }
+
+        for (let i = 0; i < tasks.length; i++) {
+          const inputs = tasks[i].querySelectorAll("input, textarea");
+          await userRef.collection("tasks").doc("task" + (i + 1)).set({
+            title: inputs[0].value,
+            due_date: inputs[1].value,
+            category: inputs[2].value,
+            description: inputs[3].value
+          });
+        }
+
+        for (const [day, entries] of Object.entries(scheduleData)) {
+          const data = entries.map(el => {
+            const inputs = el.querySelectorAll("input");
+            return { subject: inputs[0].value, time: inputs[1].value, location: inputs[2].value };
+          });
+          await userRef.collection("schedule").doc(day).set({ courses: data });
+        }
+
+        await Promise.all([
+          uploadPhoto(document.getElementById("photo1").files[0], faceId, 1),
+          uploadPhoto(document.getElementById("photo2").files[0], faceId, 2),
+          uploadPhoto(document.getElementById("photo3").files[0], faceId, 3)
+        ]);
+
+        status.style.color = "green";
+        status.innerText = "Berhasil mengirim data!";
+      } catch (err) {
+        status.style.color = "red";
+        status.innerText = "Gagal kirim: " + err.message;
+        console.error(err);
+      }
+    });
+
+    showScheduleForDay();
+  </script>
+  <script>
+    // Extend nextPage and prevPage to update step indicator
+    function updateSteps() {
+      const stepElems = document.querySelectorAll('.step');
+      stepElems.forEach((el, i) => {
+        el.classList.toggle('active', i === currentPage);
+      });
+    }
+    const origNext = nextPage;
+    nextPage = function() {
+      origNext();
+      updateSteps();
+    };
+    const origPrev = prevPage;
+    prevPage = function() {
+      origPrev();
+      updateSteps();
+    };
+    document.addEventListener('DOMContentLoaded', updateSteps);
+  </script>
+</body>
+</html>

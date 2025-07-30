@@ -1,0 +1,87 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #f6ad55, #ed8936);
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .form-container {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    width: 90%;
+    max-width: 900px;
+    overflow: hidden;
+  }
+  .steps {
+    display: flex;
+    background: #f1f3f5;
+    position: relative;
+  }
+  .step {
+    flex: 1;
+    padding: 15px;
+    text-align: center;
+    font-weight: 600;
+    position: relative;
+    color: #666;
+  }
+  .step.active {
+    color: #fff;
+    background: linear-gradient(90deg, #f6ad55, #ed8936);
+  }
+  .form-body {
+    padding: 30px;
+  }
+  .page {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+  .page.active {
+    display: block;
+  }
+  h2, h3 { color: #f6ad55;
+  }
+  label {
+    display: block;
+    margin-top: 10px;
+    font-weight: 500;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+  }
+  button {
+    background: #f6ad55;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    margin: 5px;
+    transition: 0.2s ease;
+  }
+  button:hover {
+    background: #dd6b20;
+  }
+  button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  @keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
+  }

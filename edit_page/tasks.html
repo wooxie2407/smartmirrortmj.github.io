@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Daftar Tugas</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Task card layout */
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .task-card {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .task-card h3 {
+      color: #e76f51;
+      margin: 0 0 10px;
+    }
+    .task-card p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    .task-card strong {
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Dashboard</h2>
+    <div class="nav-links">
+      <div class="nav-link" onclick="goToPage('dashboard.html')">Home</div>
+      <div class="nav-link" onclick="goToPage('edit.html')">Edit Data</div>
+      <div class="nav-link" onclick="goToPage('schedule.html')">Jadwal</div>
+      <div class="nav-link" onclick="goToPage('tasks.html')">Tugas</div>
+      <div class="nav-link" onclick="goToPage('agenda.html')">Agenda</div>
+	  <div class="nav-link" onclick="logout()">Logout</div>
+    </div>
+  </div>
+
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="header">
+      <h1>Daftar Tugas</h1>
+    </div>
+    <div class="task-list" id="task-list">
+      <!-- Task cards will load here -->
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth-compat.js"></script>
+  <script>
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhLoamtCoPvVdEmI9EyiSUEtAcqBoj90Q",
+      authDomain: "smartmirrortest1-a430b.firebaseapp.com",
+      projectId: "smartmirrortest1-a430b",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    let faceId = null;
+
+    // Navigation
+    function goToPage(page) {
+      window.location.href = page + "?faceId=" + faceId;
+    }
+
+    function logout() {
+      auth.signOut().then(() => window.location.href = "login.html");
+    }
+
+    // Auth check
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        const nim = user.email.split('@')[0];
+        faceId = nim.slice(-3);
+        loadTasks(faceId);
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    // Load tasks from Firestore
+    async function loadTasks(faceId) {
+      const container = document.getElementById("task-list");
+      container.innerHTML = "";
+
+      const snap = await db.collection("users").doc(faceId).collection("tasks").get();
+      snap.forEach(doc => {
+        const t = doc.data();
+        const card = document.createElement("div");
+        card.className = "task-card";
+        card.innerHTML = `
+          <h3>${t.title || "-"}</h3>
+          <p><strong>Deadline:</strong> ${t.due_date || "-"}</p>
+          <p><strong>Kategori:</strong> ${t.category || "-"}</p>
+          <p>${t.description || ""}</p>
+        `;
+        container.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>

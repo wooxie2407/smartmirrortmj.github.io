@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Kompensasi Mahasiswa</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .content-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+    }
+    .content-card h2 {
+      margin-top: 0;
+      color: #e76f51;
+      font-size: 18px;
+    }
+    .content-card p {
+      margin: 5px 0;
+      font-size: 14px;
+      color: #444;
+    }
+    .form-section label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .form-section input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .form-section .btn {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background: #2a9d8f;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .form-section .btn:hover {
+      background: #21867a;
+    }
+    .btn-edit {
+      padding: 5px 10px;
+      background: #f4a261;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .btn-edit:hover {
+      background: #e76f51;
+    }
+    .btn-delete {
+      padding: 5px 10px;
+      background: #d9534f;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .btn-delete:hover {
+      background: #c9302c;
+    }
+    .explanation {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #666;
+      background: #fff7ee;
+      padding: 10px;
+      border-radius: 6px;
+      border-left: 4px solid #f4a261;
+    }
+    input.edit-izin,
+    input.edit-sakit,
+    input.edit-alpa {
+      width: 60px;
+      padding: 5px;
+      font-size: 12px;
+      text-align: center;
+    }
+    #summary-card p {
+      font-size: 16px;
+      color: #333;
+      font-weight: bold;
+    }
+    #student-total {
+      color: #e76f51;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Kompensasi Admin</h2>
+<div class="nav-links">
+  <div class="nav-link" onclick="goToPage('dashboard.html')">Dashboard</div>
+  <div class="nav-link" onclick="goToPage('mahasiswa.html')">Daftar Mahasiswa</div>
+  <div class="nav-link" onclick="logout()">Logout</div>
+</div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="header">
+      <h1>Data Kompensasi</h1>
+    </div>
+
+    <!-- Student Info -->
+    <div class="content-card">
+      <h2>Informasi Mahasiswa</h2>
+      <p><strong>Nama:</strong> <span id="student-name">Loading...</span></p>
+      <p><strong>NIM:</strong> <span id="student-nim">Loading...</span></p>
+      <p><strong>Gender:</strong> <span id="student-gender">Loading...</span></p>
+    </div>
+
+    <!-- Total Kompensasi Card -->
+    <div class="content-card" id="summary-card">
+      <h2>Total Kompensasi Mahasiswa</h2>
+      <p><strong>Total (Rp):</strong> <span id="student-total">0</span></p>
+    </div>
+
+    <!-- Add/Edit Form -->
+    <div class="content-card form-section">
+      <h2>Tambah Kompensasi</h2>
+      <label for="izin">Izin (hari)</label>
+      <input type="number" id="izin" value="0" min="0">
+      <label for="sakit">Sakit (hari)</label>
+      <input type="number" id="sakit" value="0" min="0">
+      <label for="alpa">Alpa (jam)</label>
+      <input type="number" id="alpa" value="0" min="0">
+      <p><strong>Total (Rp):</strong> <span id="total-amount">0</span></p>
+      <div class="explanation">
+        <strong>Keterangan:</strong><br>
+        - Alpa dihitung 5 jam per 1 input.<br>
+        - Izin dihitung 3 jam per 1 input.<br>
+        - Sakit dihitung 1 jam per 1 input.<br>
+        Setiap 1 jam bernilai Rp 5.000.
+      </div>
+      <button class="btn" onclick="addKompensasi()">Tambah</button>
+    </div>
+
+    <!-- Table of Kompensasi -->
+    <div class="content-card">
+      <table id="kompensasi-table">
+        <thead>
+          <tr>
+            <th>Izin</th>
+            <th>Sakit</th>
+            <th>Alpa</th>
+            <th>Total (Rp)</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data rows -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhLoamtCoPvVdEmI9EyiSUEtAcqBoj90Q",
+      authDomain: "smartmirrortest1-a430b.firebaseapp.com",
+      projectId: "smartmirrortest1-a430b",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    let studentId = null;
+
+    function logout() {
+      auth.signOut().then(() => window.location.href = "login.html");
+    }
+
+    function goToPage(page) {
+      window.location.href = page;
+    }
+
+    function calculateTotal() {
+      const izin = parseInt(document.getElementById("izin").value) || 0;
+      const sakit = parseInt(document.getElementById("sakit").value) || 0;
+      const alpa = parseInt(document.getElementById("alpa").value) || 0;
+      const total = (alpa * 5 + izin * 3 + sakit * 1) * 5000;
+      document.getElementById("total-amount").innerText = total.toLocaleString("id-ID");
+      return total;
+    }
+
+    document.getElementById("izin").addEventListener("input", calculateTotal);
+    document.getElementById("sakit").addEventListener("input", calculateTotal);
+    document.getElementById("alpa").addEventListener("input", calculateTotal);
+
+    async function loadStudentData() {
+      const params = new URLSearchParams(window.location.search);
+      studentId = params.get("student");
+      if (!studentId) {
+        alert("ID mahasiswa tidak ditemukan!");
+        return;
+      }
+
+      const studentDoc = await db.collection("users").doc(studentId).get();
+      if (!studentDoc.exists) {
+        alert("Data mahasiswa tidak ditemukan!");
+        return;
+      }
+
+      const data = studentDoc.data();
+      document.getElementById("student-name").innerText = data.name || "-";
+      document.getElementById("student-nim").innerText = data.nim || "-";
+      document.getElementById("student-gender").innerText = data.gender || "-";
+
+      loadKompensasi();
+    }
+
+    async function loadKompensasi() {
+      const tableBody = document.querySelector("#kompensasi-table tbody");
+      const totalDisplay = document.getElementById("student-total");
+      tableBody.innerHTML = "";
+      let totalKompensasi = 0;
+
+      const kompSnap = await db.collection("users").doc(studentId).collection("kompensasi").get();
+      kompSnap.forEach(doc => {
+        const k = doc.data();
+        totalKompensasi += k.total || 0;
+        tableBody.innerHTML += `
+          <tr data-id="${doc.id}">
+            <td class="cell-izin">${k.izin}</td>
+            <td class="cell-sakit">${k.sakit}</td>
+            <td class="cell-alpa">${k.alpa}</td>
+            <td class="cell-total">${(k.total || 0).toLocaleString("id-ID")}</td>
+            <td>
+              <button class="btn-edit" onclick="enableEdit('${doc.id}')">Edit</button>
+              <button class="btn-delete" onclick="deleteKompensasi('${doc.id}')">Hapus</button>
+            </td>
+          </tr>
+        `;
+      });
+      totalDisplay.innerText = totalKompensasi.toLocaleString("id-ID");
+    }
+
+    async function addKompensasi() {
+      const izin = parseInt(document.getElementById("izin").value) || 0;
+      const sakit = parseInt(document.getElementById("sakit").value) || 0;
+      const alpa = parseInt(document.getElementById("alpa").value) || 0;
+      const total = calculateTotal();
+
+      await db.collection("users").doc(studentId).collection("kompensasi").add({
+        izin, sakit, alpa, total
+      });
+
+      alert("Kompensasi berhasil ditambahkan!");
+      loadKompensasi();
+    }
+
+    async function deleteKompensasi(id) {
+      if (confirm("Yakin ingin menghapus kompensasi ini?")) {
+        await db.collection("users").doc(studentId).collection("kompensasi").doc(id).delete();
+        loadKompensasi();
+      }
+    }
+
+    function calculateEditTotal(izin, sakit, alpa) {
+      return (alpa * 5 + izin * 3 + sakit * 1) * 5000;
+    }
+
+    function enableEdit(docId) {
+      const row = document.querySelector(`tr[data-id='${docId}']`);
+      const izin = row.querySelector(".cell-izin").innerText;
+      const sakit = row.querySelector(".cell-sakit").innerText;
+      const alpa = row.querySelector(".cell-alpa").innerText;
+
+      row.innerHTML = `
+        <td><input type="number" value="${izin}" class="edit-izin"></td>
+        <td><input type="number" value="${sakit}" class="edit-sakit"></td>
+        <td><input type="number" value="${alpa}" class="edit-alpa"></td>
+        <td class="cell-total">${calculateEditTotal(izin, sakit, alpa).toLocaleString("id-ID")}</td>
+        <td>
+          <button class="btn" onclick="saveEdit('${docId}')">Simpan</button>
+          <button class="btn-delete" onclick="loadKompensasi()">Batal</button>
+        </td>
+      `;
+
+      row.querySelectorAll("input").forEach(input => {
+        input.addEventListener("input", () => {
+          const newIzin = parseInt(row.querySelector(".edit-izin").value) || 0;
+          const newSakit = parseInt(row.querySelector(".edit-sakit").value) || 0;
+          const newAlpa = parseInt(row.querySelector(".edit-alpa").value) || 0;
+          row.querySelector(".cell-total").innerText =
+            calculateEditTotal(newIzin, newSakit, newAlpa).toLocaleString("id-ID");
+        });
+      });
+    }
+
+    async function saveEdit(docId) {
+      const row = document.querySelector(`tr[data-id='${docId}']`);
+      const izin = parseInt(row.querySelector(".edit-izin").value) || 0;
+      const sakit = parseInt(row.querySelector(".edit-sakit").value) || 0;
+      const alpa = parseInt(row.querySelector(".edit-alpa").value) || 0;
+      const total = calculateEditTotal(izin, sakit, alpa);
+
+      await db.collection("users").doc(studentId)
+        .collection("kompensasi").doc(docId)
+        .set({ izin, sakit, alpa, total }, { merge: true });
+
+      alert("Kompensasi berhasil diperbarui!");
+      loadKompensasi();
+    }
+
+    document.addEventListener("DOMContentLoaded", loadStudentData);
+  </script>
+</body>
+</html>

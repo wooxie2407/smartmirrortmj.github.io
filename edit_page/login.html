@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Mahasiswa - Smart Mirror</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f6ad55, #ed8936);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .login-container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      width: 350px;
+      text-align: center;
+    }
+    h2 {
+      color: #f68c2d;
+      margin-bottom: 10px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+      text-align: left;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 10px;
+      background: #f68c2d;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #e06b00;
+    }
+    .back-btn {
+      margin-top: 10px;
+      background: #333;
+      color: #fff;
+    }
+    .back-btn:hover {
+      background: #555;
+    }
+    #status {
+      margin-top: 15px;
+      font-weight: bold;
+      color: red;
+    }
+    .login-image {
+      margin: 20px 0;
+    }
+    .login-image img {
+      width: 120px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-image">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135768.png" alt="Student Icon">
+    </div>
+    <h2>Login Mahasiswa</h2>
+
+    <label for="nim">NIM</label>
+    <input type="text" id="nim" placeholder="Masukkan NIM" required>
+
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Masukkan Password" required>
+
+    <button onclick="login()">Login</button>
+    <button class="back-btn" onclick="window.location.href='../index.html'">Balik ke Halaman Utama</button>
+
+    <p id="status"></p>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhLoamtCoPvVdEmI9EyiSUEtAcqBoj90Q",
+      authDomain: "smartmirrortest1-a430b.firebaseapp.com",
+      projectId: "smartmirrortest1-a430b",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    function login() {
+      const nim = document.getElementById("nim").value.trim();
+      const password = document.getElementById("password").value;
+      const email = `${nim}@students.com`;
+      const status = document.getElementById("status");
+
+      if (!nim || !password) {
+        status.innerText = "NIM dan Password harus diisi.";
+        return;
+      }
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          window.location.href = `dashboard.html?nim=${nim}`;
+        })
+        .catch(error => {
+          status.innerText = "Login gagal: " + error.message;
+        });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Agenda Mahasiswa</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .agenda-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .agenda-card {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .agenda-card h3 {
+      color: #e76f51;
+      margin: 0 0 10px;
+    }
+    .agenda-card p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    .agenda-card strong {
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Dashboard</h2>
+    <div class="nav-links">
+      <div class="nav-link" onclick="goToPage('dashboard.html')">Home</div>
+      <div class="nav-link" onclick="goToPage('edit.html')">Edit Data</div>
+      <div class="nav-link" onclick="goToPage('schedule.html')">Jadwal</div>
+      <div class="nav-link" onclick="goToPage('tasks.html')">Tugas</div>
+      <div class="nav-link" onclick="goToPage('agenda.html')">Agenda</div>
+	  <div class="nav-link" onclick="logout()">Logout</div>
+    </div>
+  </div>
+
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="header">
+      <h1>Agenda Mahasiswa</h1>
+    </div>
+    <div class="agenda-list" id="agenda-list">
+      <!-- Agenda cards will be added here dynamically -->
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhLoamtCoPvVdEmI9EyiSUEtAcqBoj90Q",
+      authDomain: "smartmirrortest1-a430b.firebaseapp.com",
+      projectId: "smartmirrortest1-a430b",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    let faceId = null;
+
+    function logout() {
+      auth.signOut().then(() => window.location.href = "login.html");
+    }
+
+    function goToPage(page) {
+      window.location.href = page + "?faceId=" + faceId;
+    }
+
+    // Check Auth
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        const nim = user.email.split('@')[0];
+        faceId = nim.slice(-3);
+        loadAgenda(faceId);
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    async function loadAgenda(faceId) {
+      const agendaList = document.getElementById("agenda-list");
+      agendaList.innerHTML = "";
+
+      const snap = await db.collection("users").doc(faceId).collection("agenda").get();
+      snap.forEach(doc => {
+        const a = doc.data();
+        const card = document.createElement("div");
+        card.className = "agenda-card";
+        card.innerHTML = `
+          <h3>${a.title || "-"}</h3>
+          <p><strong>Tanggal:</strong> ${a.date || "-"}</p>
+          <p><strong>Waktu:</strong> ${a.time || "-"}</p>
+          <p><strong>Kategori:</strong> ${a.category || "-"}</p>
+          <p>${a.description || ""}</p>
+        `;
+        agendaList.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>

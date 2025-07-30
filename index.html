@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Mirror berbasis Raspberry Pi</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- HEADER -->
+  <header>
+    <div class="logo">Smart Mirror</div>
+    <nav>
+      <a href="#beranda">Beranda</a>
+      <a href="#tentang">Tentang Saya</a>
+	  <a href="admin_page/login.html">Login Admin</a>
+	  <a href="edit_page/login.html">Login User</a>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero" id="beranda">
+    <div class="hero-text">
+      <h1>Registrasi Smart Mirror</h1>
+      <p>
+        Smart Mirror berbasis <strong>Raspberry Pi</strong> dengan <strong>Face Recognition</strong> 
+        membantu mahasiswa memanajemen jadwal, tugas, dan informasi harian dengan personalisasi cerdas.
+      </p>
+      <button class="cta-btn" onclick="window.location.href='regist_page/regist.html'">Registrasi Disini!</button>
+    </div>
+    <div class="hero-image">
+      <img src="https://cdn-icons-png.flaticon.com/512/2103/2103845.png" alt="Ilustrasi Smart Mirror">
+    </div>
+  </section>
+
+  <!-- FEATURES SECTION -->
+  <section class="features" id="layanan">
+    <div class="feature">
+      <img src="https://cdn-icons-png.flaticon.com/512/992/992651.png" alt="IoT Icon">
+      <h3>Integrasi IoT</h3>
+      <p>Smart Mirror memanfaatkan teknologi Internet of Things (IoT) untuk menampilkan data real-time.</p>
+    </div>
+    <div class="feature">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Face Recognition Icon">
+      <h3>Face Recognition</h3>
+      <p>Personalisasi jadwal dan informasi dengan pengenalan wajah berbasis Dlib dan Python.</p>
+    </div>
+    <div class="feature">
+      <img src="https://cdn-icons-png.flaticon.com/512/2282/2282188.png" alt="Raspberry Pi Icon">
+      <h3>Raspberry Pi</h3>
+      <p>Ditenagai Raspberry Pi untuk efisiensi dan fleksibilitas pengembangan sistem.</p>
+    </div>
+  </section>
+
+  <!-- ABOUT SECTION -->
+  <section class="about" id="tentang">
+    <h2>Tentang Saya</h2>
+    <div class="about-content">
+      <div class="about-image">
+        <img src="img/profile.jpeg" alt="Foto Muhammad Fauzan Abdillah">
+      </div>
+      <div class="about-text">
+        <p>
+          Saya <strong>Muhammad Fauzan Abdillah</strong>, mahasiswa D4 Teknik Multimedia dan Jaringan, 
+          Teknik Informatika dan Komputer di Politeknik Negeri Ujung Pandang. 
+          Proyek ini merupakan bagian dari penelitian untuk merancang 
+          <strong>Smart Mirror berbasis Raspberry Pi</strong> dengan fitur <strong>Face Recognition</strong> 
+          yang dapat membantu mahasiswa dalam manajemen waktu dan kegiatan harian mereka. 
+          Sistem ini bertujuan memberikan pengalaman personalisasi dengan menampilkan jadwal kuliah, 
+          pengingat tugas, dan informasi lainnya secara otomatis.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2025 Smart Mirror Project - Politeknik Negeri Ujung Pandang</p>
+  </footer>
+
+  <!-- SCRIPT FOR ACTIVE NAV -->
+  <script>
+    // Smooth scroll behavior is handled by CSS (scroll-behavior)
+    const sections = document.querySelectorAll("section");
+    const navLinks = document.querySelectorAll("nav a");
+
+    window.addEventListener("scroll", () => {
+      let current = "";
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 80; // Offset for header
+        const sectionHeight = section.clientHeight;
+        if (pageYOffset >= sectionTop && pageYOffset < sectionTop + sectionHeight) {
+          current = section.getAttribute("id");
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove("active");
+        if (link.getAttribute("href") === "#" + current) {
+          link.classList.add("active");
+        }
+      });
+    });
+  </script>
+</body>
+</html>

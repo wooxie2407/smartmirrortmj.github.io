@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Flask Upload Test</title>
+</head>
+<body>
+  <h1>Upload Test</h1>
+  <input type="file" id="fileInput"><br><br>
+  <button onclick="upload()">Upload</button>
+  <pre id="response"></pre>
+  <script>
+    async function upload() {
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) return alert("Select a file first!");
+      
+      const formData = new FormData();
+      formData.append("photo", file);
+      formData.append("face_id", "123");
+      formData.append("index", "1");
+
+      const res = await fetch("https://c7453895bf0a.ngrok-free.app/upload", {
+        method: "POST",
+        body: formData
+      });
+      document.getElementById("response").textContent = await res.text();
+    }
+  </script>
+</body>
+</html>
