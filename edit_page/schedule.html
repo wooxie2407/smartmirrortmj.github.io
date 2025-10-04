@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Jadwal Kuliah</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .content-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .list-item { padding: 8px; border-bottom: 1px solid #eee; font-size: 14px; color: #333; }
+    .list-item:last-child { border-bottom: none; }
+    h3 { margin-top: 15px; color: #e76f51; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Dashboard</h2>
+    <div class="nav-links">
+      <div class="nav-link" onclick="goToPage('dashboard.html')">Home</div>
+      <div class="nav-link" onclick="goToPage('edit.html')">Edit Data</div>
+      <div class="nav-link" onclick="goToPage('schedule.html')">Jadwal</div>
+      <div class="nav-link" onclick="goToPage('tasks.html')">Tugas</div>
+      <div class="nav-link" onclick="goToPage('agenda.html')">Agenda</div>
+      <div class="nav-link" onclick="logout()">Logout</div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="header"><h1>Jadwal Kuliah</h1></div>
+    <div class="content-card">
+      <div id="schedule-list">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhLoamtCoPvVdEmI9EyiSUEtAcqBoj90Q",
+      authDomain: "smartmirrortest1-a430b.firebaseapp.com",
+      projectId: "smartmirrortest1-a430b",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    let nim = null;
+
+    function logout() { auth.signOut().then(() => window.location.href = "login.html"); }
+    function goToPage(page) { window.location.href = page + "?nim=" + nim; }
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        nim = user.email.split('@')[0]; 
+        loadSchedule(nim);
+      } else { window.location.href = "login.html"; }
+    });
+
+    async function loadSchedule(nim) {
+      const container = document.getElementById("schedule-list");
+      container.innerHTML = "";
+      const scheduleSnap = await db.collection("users").doc(nim).collection("schedule").get();
+      scheduleSnap.forEach(doc => {
+        const day = doc.id;
+        const courses = doc.data().courses || [];
+        container.innerHTML += `<h3>${day.toUpperCase()}</h3>`;
+        if (courses.length > 0) {
+          courses.forEach(c => {
+            container.innerHTML += `<div class="list-item">${c.subject} - ${c.time} (${c.location})</div>`;
+          });
+        } else {
+          container.innerHTML += "<p>Tidak ada jadwal.</p>";
+        }
+      });
+    }
+  </script>
+</body>
+</html>

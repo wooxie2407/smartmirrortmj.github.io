@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Kompensasi Mahasiswa</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .komp-list { display: flex; flex-direction: column; gap: 15px; }
+    .komp-card {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .komp-card h3 { color: #e76f51; margin: 0 0 10px; }
+    .komp-card p { margin: 5px 0; font-size: 14px; }
+    .total-box {
+      text-align: center;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+    .total-box h2 { margin: 0; color: #e76f51; }
+    .total-box span {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2a9d8f;
+      display: block;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Dashboard</h2>
+    <div class="nav-links">
+      <div class="nav-link" onclick="goToPage('dashboard.html')">Home</div>
+      <div class="nav-link" onclick="goToPage('edit.html')">Edit Data</div>
+      <div class="nav-link" onclick="goToPage('schedule.html')">Jadwal</div>
+      <div class="nav-link" onclick="goToPage('tasks.html')">Tugas</div>
+      <div class="nav-link" onclick="goToPage('agenda.html')">Agenda</div>
+      <div class="nav-link" onclick="goToPage('kompensasi.html')">Kompensasi</div>
+      <div class="nav-link" onclick="logout()">Logout</div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="header"><h1>Kompensasi Mahasiswa</h1></div>
+
+    <!-- Total Kompensasi -->
+    <div class="total-box">
+      <h2>Total Kompensasi</h2>
+      <span id="student-total">0</span>
+    </div>
+
+    <!-- Rincian Kompensasi -->
+    <div class="komp-list" id="komp-list">Loading...</div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhLoamtCoPvVdEmI9EyiSUEtAcqBoj90Q",
+      authDomain: "smartmirrortest1-a430b.firebaseapp.com",
+      projectId: "smartmirrortest1-a430b",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    let nim = null;
+
+    function logout() { auth.signOut().then(() => window.location.href = "login.html"); }
+    function goToPage(page) { window.location.href = page + "?nim=" + nim; }
+
+    // Auth Guard
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        nim = user.email.split('@')[0]; 
+        loadSummary(nim);
+        loadKompensasi(nim);
+      } else { window.location.href = "login.html"; }
+    });
+
+    // === Load Summary ===
+    async function loadSummary(nim) {
+      const snap = await db.collection("users").doc(nim).collection("kompensasi").limit(1).get();
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
+        document.getElementById("student-total").innerText = (data.total || 0).toLocaleString("id-ID");
+      }
+    }
+
+    // === Load Weekly Details ===
+    async function loadKompensasi(nim) {
+      const container = document.getElementById("komp-list");
+      container.innerHTML = "";
+      const snap = await db.collection("kompensasi").doc(nim).collection("minggu").get();
+      if (snap.empty) {
+        container.innerHTML = "<p>Tidak ada data kompensasi.</p>";
+      }
+      snap.forEach(doc => {
+        const k = doc.data();
+        const card = document.createElement("div");
+        card.className = "komp-card";
+        card.innerHTML = `
+          <h3>${doc.id.replace("minggu","Minggu ")}</h3>
+          <p><strong>Izin:</strong> ${k.izin || 0} jam</p>
+          <p><strong>Sakit:</strong> ${k.sakit || 0} jam</p>
+          <p><strong>Alpa:</strong> ${k.alpa || 0} jam</p>
+          <p><strong>Total:</strong> Rp ${(k.total || 0).toLocaleString("id-ID")}</p>
+        `;
+        container.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>
